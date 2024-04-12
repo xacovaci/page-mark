@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PageMark Popup</title>
+    <link rel="stylesheet" href="styles/shared.css" />
+    <link rel="stylesheet" href="styles/popup.css" />
+  </head>
+  <body>
+    <!-- Templates -->
+    <template id="mark-card-template">
+      <div class="mark-card-item">
+        <div class="mark-card-icon">
+          <img src="" alt="icon" />
+        </div>
+        <div class="mark-card-content">
+          <p class="mark-card-title"></p>
+          <a class="mark-card-url"></a>
+          <p class="mark-card-datetime"></p>
+        </div>
+      </div>
+    </template>
+    <!-- End of Templates -->
+    <!-- Main panel -->
+    <div id="home-panel">
+      <div class="tab-menu">
+        <button id="save-panel-btn" class="active">SAVE</button>
+        <button id="load-panel-btn">LOAD</button>
+      </div>
+      <div id="add-mark-section" class="message-panel">
+        <h2>Mark This Page</h2>
+        <img
+          id="add-mark-btn"
+          src="../assets/icons/plus.png"
+          alt="plus button"
+        />
+      </div>
+      <div id="marks-list-section" class="form-panel hidden">
+        <div class="list-box" id="saved-marks-select"></div>
+        <button id="load-mark-btn">Load</button>
+        <button id="edit-mark-btn">Edit</button>
+        <button id="delete-mark-btn" class="red-btn">Delete</button>
+      </div>
+      <div class="settings-menu">
+        <img id="settings-btn" src="../assets/icons/gear.png" alt="settings" />
+      </div>
+    </div>
+
+    <!-- Mark Form -->
+    <div id="mark-form-panel" class="form-panel hidden">
+      <h3 class="sub-panel-title">Page Mark</h3>
+      <label class="form-label" for="mark-form-icon">Icon:</label>
+      <img id="mark-form-icon" src="" alt="page icon" />
+
+      <label class="form-label" for="mark-form-url">URL:</label>
+      <input class="form-input" type="url" name="url" id="mark-form-url" />
+
+      <label class="form-label" for="mark-form-title">Name:</label>
+      <input class="form-input" type="text" name="title" id="mark-form-title" />
+
+      <label class="form-label" for="mark-form-group-select">Group:</label>
+      <select class="form-input" name="group" id="mark-form-group-select">
+        <option value="0">Main</option>
+      </select>
+      <a id="mark-form-edit-groups-btn" href="#">Edit Groups</a>
+
+      <div class="form-save-section">
+        <input id="mark-scroll-position" name="scroll-position" type="hidden" />
+        <input id="mark-selection-range" name="selection-range" type="hidden" />
+        <input
+          id="mark-request-type"
+          name="request-type"
+          type="hidden"
+          value="add"
+        />
+        <input id="mark-id-form" name="mark-id" type="hidden" value="" />
+        <button id="submit-mark-form">Submit</button>
+        <button class="cancel-btn gray-btn">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Group Panel -->
+    <div id="groups-list-panel" class="form-panel hidden">
+      <h3 class="sub-panel-title">Groups</h3>
+      <div>
+        <select class="list-box" name="" id="" size="7"></select>
+        <button>New</button>
+        <button>Edit</button>
+        <button class="red-btn">Delete</button>
+      </div>
+      <button class="back-btn gray-btn">Back</button>
+    </div>
+
+    <!-- Group Form -->
+    <div id="group-form-panel" class="form-panel hidden">
+      <h3 class="sub-panel-title">Group</h3>
+      <label class="form-label" for="">Name:</label>
+      <input class="form-input" type="text" />
+      <div class="form-save-section">
+        <button>Save</button>
+        <button class="cancel-btn gray-btn">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Message Box -->
+    <div class="message-box hidden">
+      <div class="message-box-card">
+        <p></p>
+        <div class="form-save-section">
+          <button id="message-box-submit">Yes</button>
+          <button id="message-box-cancel" class="red-btn">No</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../src/popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "manifest_version": 2,
+  "name": "PageMark",
+  "version": "1.0",
+  "permissions": ["contextMenus", "activeTab", "storage"],
+  "browser_action": {
+    "default_popup": "views/popup.html"
+  },
+  "options_ui": {
+    "page": "views/settings.html"
+  },
+  "icons": {
+    "16": "assets/icons/icon16x16.png",
+    "24": "assets/icons/icon24x24.png",
+    "32": "assets/icons/icon32x32.png",
+    "64": "assets/icons/icon64x64.png",
+    "128": "assets/icons/icon128x128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/handler.js"]
+    }
+  ],
+  "background": {
+    "scripts": ["src/background.js"]
+  }
+}

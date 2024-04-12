@@ -1,0 +1,104 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 350px;
+  font-family: sans-serif;
+  background-color: #b6ceb6;
+}
+
+.hidden {
+  display: none !important;
+}
+
+button {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #003a00;
+  background-color: #0a4b0a;
+  border-radius: 5px;
+  color: #e6ffe6;
+  cursor: pointer;
+}
+
+button:hover,
+button:active {
+  background-color: #001f00;
+  opacity: 0.8;
+}
+
+.red-btn {
+  background-color: #a10d0d;
+  border: 1px solid #800707;
+}
+
+.red-btn:hover,
+.red-btn:active {
+  background-color: #6d0000;
+}
+
+.gray-btn {
+  background-color: #5c5c5c;
+  border: 1px solid #424242;
+}
+
+.gray-btn:hover,
+.gray-btn:active {
+  background-color: #2e2e2e;
+}
+
+.message-box {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #2e2e2e91;
+}
+
+.message-box-card {
+  padding: 1rem;
+  border: 2px solid #003a00;
+  background-color: #b6ceb6;
+  border-radius: 5px;
+  width: 70%;
+}
+
+.message-box-card p {
+  margin-bottom: 0.6rem;
+}
+
+.message-box-card div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.message-box-card div > button {
+  margin-right: 1rem;
+}
+
+.sub-panel-title {
+  margin-bottom: 0.7rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.form-input {
+  display: block;
+  width: 100%;
+  padding: 0.3rem 0.4rem;
+  margin-bottom: 0.5rem;
+  background-color: #fff;
+  border: 1px solid grey;
+  border-radius: 5px;
+}
+
