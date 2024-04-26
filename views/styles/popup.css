@@ -126,6 +126,22 @@
   color: #555555;
 }
 
+.groups-list-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+#group-list-select {
+  flex: 1;
+  margin-right: 0.6rem;
+  padding: 0.4rem;
+  background-color: #aec4ab;
+  border: 1px solid #869b86;
+  border-radius: 5px;
+}
+
 .list-box {
   display: block;
   width: 100%;

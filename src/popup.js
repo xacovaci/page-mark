@@ -17,6 +17,7 @@ const loadPanelBtn = document.querySelector("#load-panel-btn");
 
 let selectedMarkId;
 let savedMarksList = [];
+let groupsList = [];
 
 const activityStack = [homePanelElement];
 
@@ -77,7 +78,7 @@ function fillMarkForm({
   scrollPosition = "",
   selectionRange = "",
   requestType = "add",
-  markId = null,
+  id = "",
 }) {
   document.querySelector("#mark-form-icon").src = icon;
   document.querySelector("#mark-form-url").value = url;
@@ -85,7 +86,13 @@ function fillMarkForm({
   document.querySelector("#mark-scroll-position").value = scrollPosition;
   document.querySelector("#mark-selection-range").value = selectionRange;
   document.querySelector("#mark-request-type").value = requestType;
-  document.querySelector("#mark-id-form").value = markId;
+  document.querySelector("#mark-id-form").value = id;
+}
+
+function fillGroupForm({ name = "", requestType = "add", id = "" }) {
+  document.querySelector("#group-form-panel .form-input").value = name;
+  document.querySelector("#group-form-id").value = id;
+  document.querySelector("#group-form-request-type").value = requestType;
 }
 
 function handleMarkCardClick({ currentTarget }) {
@@ -102,14 +109,18 @@ function handleMarkCardClick({ currentTarget }) {
 }
 
 function renderSavedMarksList() {
+  const selectedGroupId = document.querySelector("#group-list-select").value;
+
   savedMarksListElement.innerHTML = "";
-  savedMarksList.forEach(({ markId, icon, url, title, date, time }) => {
+  savedMarksList.forEach(({ id, groupId, icon, url, title, date, time }) => {
+    if (selectedGroupId != groupId) return;
+
     const markCardTemplate = document.querySelector("#mark-card-template");
     const markCard = markCardTemplate.content.cloneNode(true);
 
     const markCardContainer = markCard.querySelector(".mark-card-item");
-    markCardContainer.setAttribute("id", markId);
-    if (selectedMarkId == markId) markCardContainer.classList.add("active");
+    markCardContainer.setAttribute("id", id);
+    if (selectedMarkId == id) markCardContainer.classList.add("active");
 
     markCard.querySelector(".mark-card-icon img").src = icon;
     markCard.querySelector(".mark-card-title").innerText = title;
@@ -125,14 +136,44 @@ function renderSavedMarksList() {
   });
 }
 
+function renderGroupsList() {
+  document
+    .querySelectorAll(
+      "#groups-list, #group-list-select, #mark-form-group-select",
+    )
+    .forEach((groupListElement) => {
+      groupListElement.innerHTML = groupListElement.classList.contains(
+        "list-box",
+      )
+        ? ""
+        : `<option value="0" selected>Main</option>`;
+
+      for (const group of groupsList)
+        groupListElement.innerHTML += `<option value="${group.id}">${group.name}</option>`;
+    });
+}
+
+async function updateGroupsList() {
+  const response = await browser.runtime.sendMessage({ action: "getGroups" });
+
+  groupsList = JSON.parse(response.data);
+
+  renderGroupsList();
+}
+
 async function updateMarksList() {
   const response = await browser.runtime.sendMessage({ action: "getMarks" });
 
   savedMarksList = JSON.parse(response.data);
 
-  selectedMarkId = savedMarksList.length > 0 ? savedMarksList[0].markId : null;
+  selectedMarkId = savedMarksList.length > 0 ? savedMarksList[0].id : null;
 
   renderSavedMarksList();
+}
+
+async function updateLists() {
+  await updateGroupsList();
+  await updateMarksList();
 }
 
 function closeMessageBox() {
@@ -176,7 +217,7 @@ savePanelBtn.addEventListener("click", function () {
 });
 
 loadPanelBtn.addEventListener("click", async function () {
-  await updateMarksList();
+  await updateLists();
 
   if (!addMarkSectionElement.classList.contains("hidden")) {
     savePanelBtn.classList.remove("active");
@@ -195,7 +236,7 @@ document.querySelector("#add-mark-btn").addEventListener("click", function () {
 
     browser.tabs
       .sendMessage(currentTab.id, { action: "getPageMarkData" })
-      .then(({ scrollPosition, selectionRange }) => {
+      .then(async ({ scrollPosition, selectionRange }) => {
         const url = currentTab.url;
         const title = currentTab.title;
         const icon = `https://www.google.com/s2/favicons?sz=64&domain_url=${url}`;
@@ -208,6 +249,8 @@ document.querySelector("#add-mark-btn").addEventListener("click", function () {
           selectionRange,
         });
 
+        await updateGroupsList();
+
         openPanel(markFormPanelElement);
       })
       .catch((error) => {
@@ -215,6 +258,12 @@ document.querySelector("#add-mark-btn").addEventListener("click", function () {
       });
   });
 });
+
+document
+  .querySelector("#group-list-select")
+  .addEventListener("change", async function () {
+    renderSavedMarksList();
+  });
 
 document.querySelector("#settings-btn").addEventListener("click", function () {
   openSettings();
@@ -240,7 +289,7 @@ document
       "#mark-selection-range",
     ).value;
     const requestType = document.querySelector("#mark-request-type").value;
-    const markId = document.querySelector("#mark-id-form").value;
+    const id = document.querySelector("#mark-id-form").value;
 
     const { date, time } = getCurrentDateAndTime();
 
@@ -254,7 +303,7 @@ document
       scrollPosition,
       selectionRange,
       requestType,
-      markId,
+      id,
     };
 
     await browser.runtime.sendMessage({
@@ -263,7 +312,9 @@ document
     });
 
     fillMarkForm({});
-    updateMarksList();
+
+    await updateLists();
+
     popFromActivityStack();
   });
 
@@ -286,7 +337,7 @@ document
   });
 
 document.querySelector("#edit-mark-btn").addEventListener("click", function () {
-  const { url, icon, title, scrollPosition, selectionRange, markId } =
+  const { url, icon, title, scrollPosition, selectionRange, id } =
     savedMarksList[selectedMarkId];
 
   fillMarkForm({
@@ -295,7 +346,7 @@ document.querySelector("#edit-mark-btn").addEventListener("click", function () {
     title,
     scrollPosition,
     selectionRange,
-    markId,
+    id,
     requestType: "edit",
   });
 
@@ -310,10 +361,85 @@ document
       onSubmit: async function () {
         await browser.runtime.sendMessage({
           action: "handleMark",
-          data: { requestType: "delete", markId: selectedMarkId },
+          data: { requestType: "delete", id: selectedMarkId },
         });
 
-        updateMarksList();
+        updateLists();
       },
     });
+  });
+
+document.querySelectorAll(".edit-groups-btn").forEach((editGroupBtn) => {
+  editGroupBtn.addEventListener("click", async function () {
+    await updateGroupsList();
+    openPanel(groupsListPanelElement);
+  });
+});
+
+document.querySelector("#add-group-btn").addEventListener("click", function () {
+  fillGroupForm({});
+  openPanel(groupFormPanelElement);
+});
+
+document
+  .querySelector("#edit-group-btn")
+  .addEventListener("click", function () {
+    const groupsSelect = document.querySelector("#groups-list");
+    const groupId = groupsSelect.value;
+    const groupName = groupsSelect.options[groupsSelect.selectedIndex].text;
+
+    fillGroupForm({ name: groupName, id: groupId, requestType: "edit" });
+
+    openPanel(groupFormPanelElement);
+  });
+
+document
+  .querySelector("#delete-group-btn")
+  .addEventListener("click", function () {
+    const selectedGroupId = document.querySelector("#groups-list").value;
+
+    showMessageBox({
+      message:
+        "Deleting selected group. this will also delete all the saved marks in this group. Are you sure?",
+      onSubmit: async function () {
+        await browser.runtime.sendMessage({
+          action: "handleGroup",
+          data: { requestType: "delete", id: selectedGroupId },
+        });
+
+        updateLists();
+      },
+    });
+  });
+
+document
+  .querySelector("#group-form-submit")
+  .addEventListener("click", async function () {
+    const groupName = document.querySelector(
+      "#group-form-panel .form-input",
+    ).value;
+
+    const requestType = document.querySelector(
+      "#group-form-request-type",
+    ).value;
+
+    if (requestType == "edit") {
+      const groupId = document.querySelector("#group-form-id").value;
+
+      await browser.runtime.sendMessage({
+        action: "handleGroup",
+        data: { requestType: "edit", name: groupName, id: groupId },
+      });
+    } else {
+      await browser.runtime.sendMessage({
+        action: "handleGroup",
+        data: { requestType: "add", name: groupName },
+      });
+    }
+
+    fillGroupForm({});
+
+    await updateLists();
+
+    popFromActivityStack();
   });

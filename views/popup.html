@@ -37,6 +37,10 @@
         />
       </div>
       <div id="marks-list-section" class="form-panel hidden">
+        <div class="groups-list-container">
+          <select name="group-list-select" id="group-list-select"></select>
+          <a class="edit-groups-btn" href="#">Edit Groups</a>
+        </div>
         <div class="list-box" id="saved-marks-select"></div>
         <button id="load-mark-btn">Load</button>
         <button id="edit-mark-btn">Edit</button>
@@ -63,7 +67,7 @@
       <select class="form-input" name="group" id="mark-form-group-select">
         <option value="0">Main</option>
       </select>
-      <a id="mark-form-edit-groups-btn" href="#">Edit Groups</a>
+      <a class="edit-groups-btn" href="#">Edit Groups</a>
 
       <div class="form-save-section">
         <input id="mark-scroll-position" name="scroll-position" type="hidden" />
@@ -84,10 +88,15 @@
     <div id="groups-list-panel" class="form-panel hidden">
       <h3 class="sub-panel-title">Groups</h3>
       <div>
-        <select class="list-box" name="" id="" size="7"></select>
-        <button>New</button>
-        <button>Edit</button>
-        <button class="red-btn">Delete</button>
+        <select
+          class="list-box"
+          name="groups-list"
+          id="groups-list"
+          size="7"
+        ></select>
+        <button id="add-group-btn">New</button>
+        <button id="edit-group-btn">Edit</button>
+        <button id="delete-group-btn" class="red-btn">Delete</button>
       </div>
       <button class="back-btn gray-btn">Back</button>
     </div>
@@ -97,8 +106,10 @@
       <h3 class="sub-panel-title">Group</h3>
       <label class="form-label" for="">Name:</label>
       <input class="form-input" type="text" />
+      <input id="group-form-id" name="group-id" type="hidden" />
+      <input id="group-form-request-type" name="request-type" type="hidden" />
       <div class="form-save-section">
-        <button>Save</button>
+        <button id="group-form-submit">Save</button>
         <button class="cancel-btn gray-btn">Cancel</button>
       </div>
     </div>

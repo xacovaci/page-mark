@@ -1,17 +1,54 @@
-class MarkStorage {
+class AddOnStorage {
+  static generateIdForList(list, key = "id") {
+    const length = list.length;
+    if (length == 0) return 1;
+    return list[length - 1][key] + 1;
+  }
+
+  static async get(key) {
+    const queryResponse = await browser.storage.local.get(key);
+    return queryResponse[key] || [];
+  }
+
+  static async set(key, value) {
+    await browser.storage.local.set({ [key]: value });
+  }
+
+  static async add(key, value, identifier = "id") {
+    const data = await this.get(key);
+    const id = this.generateIdForList(data, identifier);
+    data.push({ [identifier]: id, ...value });
+    await this.set(key, data);
+  }
+
+  static async update(key, id, value, identifier = "id") {
+    const data = await this.get(key);
+    const updatedData = data.map((record) => {
+      if (record[identifier] == id) {
+        return {
+          [identifier]: id,
+          ...value,
+        };
+      }
+      return record;
+    });
+    await this.set(key, updatedData);
+  }
+
+  static async remove(key, id, identifier = "id") {
+    const data = await this.get(key);
+    const updatedData = data.filter((record) => record[identifier] != id);
+    await this.set(key, updatedData);
+  }
+}
+
+class MarkStorage extends AddOnStorage {
   static async getAll() {
-    const queryResponse = await browser.storage.local.get("savedPageMarks");
-    return queryResponse.savedPageMarks || [];
+    return await super.get("savedPageMarks");
   }
 
   static async setAll(marks) {
-    await browser.storage.local.set({ savedPageMarks: marks });
-  }
-
-  static generateIdForList(key = "id", list) {
-    const length = list.length;
-    if (length == 0) return 0;
-    return list[length - 1][key] + 1;
+    await super.set("savedPageMarks", marks);
   }
 
   static async add({
@@ -24,10 +61,7 @@ class MarkStorage {
     scrollPosition,
     selectionRange,
   }) {
-    const marks = await this.getAll();
-    const markId = this.generateIdForList("markId", marks);
-    marks.push({
-      markId,
+    await super.add("savedPageMarks", {
       icon,
       url,
       title,
@@ -37,57 +71,71 @@ class MarkStorage {
       scrollPosition,
       selectionRange,
     });
-    await this.setAll(marks);
   }
 
   static async update(
-    markId,
+    id,
     { icon, url, title, date, time, groupId, scrollPosition, selectionRange },
   ) {
-    const marks = await this.getAll();
-    const newMarks = marks.map((mark) => {
-      if (mark.markId == markId) {
-        return {
-          markId,
-          icon,
-          url,
-          title,
-          date,
-          time,
-          groupId,
-          scrollPosition,
-          selectionRange,
-        };
-      }
-      return mark;
+    await super.update("savedPageMarks", id, {
+      icon,
+      url,
+      title,
+      date,
+      time,
+      groupId,
+      scrollPosition,
+      selectionRange,
     });
-    await this.setAll(newMarks);
   }
 
-  static async remove(markId) {
+  static async remove(id) {
+    await super.remove("savedPageMarks", id);
+  }
+
+  static async removeByGroupId(groupId) {
     const marks = await this.getAll();
-    const newMarks = marks.filter((mark) => mark.markId != markId);
-    await this.setAll(newMarks);
+    const filteredMarks = marks.filter(mark => mark.groupId != groupId);
+    await this.setAll(filteredMarks);
+  }
+}
+
+class GroupStorage extends AddOnStorage {
+  static async getAll() {
+    return await super.get("savedGroups");
   }
 
-  static async addGroup(name) {}
-  static async updateGroup(groupId, name) {}
-  static async removeGroup(groupId) {}
+  static async setAll(groups) {
+    await super.set("savedGroups", groups);
+  }
+
+  static async add(name) {
+    await super.add("savedGroups", { name });
+  }
+
+  static async update(id, name) {
+    await super.update("savedGroups", id, { name });
+  }
+
+  static async remove(id) {
+    await MarkStorage.removeByGroupId(id);
+    await super.remove("savedGroups", id);
+  }
 }
 
 async function handleMark(markData) {
   if (markData.requestType == "add") await MarkStorage.add(markData);
   else if (markData.requestType == "edit")
-    await MarkStorage.update(markData.markId, markData);
+    await MarkStorage.update(markData.id, markData);
   else if (markData.requestType == "delete")
-    await MarkStorage.remove(markData.markId);
+    await MarkStorage.remove(markData.id);
   else console.log("[background.js]: Invalid Mark Request!!!");
 }
 
-function handleGroup({ requestType, name, groupId }) {
-  if (requestType == "add") MarkStorage.addGroup(name);
-  else if (requestType == "edit") MarkStorage.updateGroup(groupId, name);
-  else if (requestType == "delete") MarkStorage.removeGroup(groupId);
+async function handleGroup({ requestType, name, id }) {
+  if (requestType == "add") GroupStorage.add(name);
+  else if (requestType == "edit") GroupStorage.update(id, name);
+  else if (requestType == "delete") GroupStorage.remove(id);
   else console.log("[background.js]: Invalid Group Request!!!");
 }
 
@@ -105,13 +153,15 @@ browser.contextMenus.onClicked.addListener(onMarkPageItemClick);
 
 browser.runtime.onMessage.addListener(async function ({ action, data }) {
   switch (action) {
+    case "getMarks":
+      return { data: JSON.stringify(await MarkStorage.getAll()) };
+    case "getGroups":
+      return { data: JSON.stringify(await GroupStorage.getAll()) };
     case "handleMark":
       await handleMark(data);
       break;
-    case "getMarks":
-      return { data: JSON.stringify(await MarkStorage.getAll()) };
     case "handleGroup":
-      handleGroup(data);
+      await handleGroup(data);
       break;
     default:
       console.log("[background.js]: Invalid Action!!!");
